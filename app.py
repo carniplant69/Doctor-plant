@@ -87,7 +87,7 @@ if img_file:
 
                 # --- PARTIE AUTOMATION (MAKE.COM) ---
                 # Remplace l'URL ci-dessous par ton lien Webhook de Make
-                webhook_url = "TON_URL_WEBHOOK_ICI" 
+                webhook_url = "https://hook.eu1.make.com/78bx3x46hpkkn0ksaojisja7px9runbm" 
                 
                 # Création du paquet de données (Payload)
                 payload = {
