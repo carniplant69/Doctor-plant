@@ -1,11 +1,12 @@
 import streamlit as st
 import google.generativeai as genai
 from PIL import Image
-import requests  # Nécessaire pour envoyer les données à Make
+import requests  # Pour l'envoi vers Make.com
 
-# 1. CONFIGURATION VISUELLE (Branding Jungle Feed)
+# 1. CONFIGURATION DE LA PAGE
 st.set_page_config(page_title="Dr. Plant | Jungle Feed", page_icon="🌿", layout="centered")
 
+# Design aux couleurs de Jungle Feed
 st.markdown("""
     <style>
     .main { background-color: #f9fbf9; }
@@ -21,14 +22,14 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 2. CONFIGURATION IA (Version 2026)
+# 2. CONFIGURATION IA
 if "GEMINI_API_KEY" in st.secrets:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"], transport='rest')
 else:
     st.error("⚠️ Clé API manquante dans les Secrets Streamlit.")
     st.stop()
 
-# 3. CATALOGUE JUNGLE FEED
+# 3. CATALOGUE JUNGLE FEED COMPLET
 CATALOGUE = """
 KITS COMPLETS :
 - Kit Ultime Anti-Thrips : https://www.junglefeed.fr/products/kit-ultime-anti-thrips
@@ -36,7 +37,7 @@ KITS COMPLETS :
 - Kit Spécial Araignée Rouge : https://www.junglefeed.fr/products/kit-special-araignee-rouge-solution-complete-anti-acariens
 - Kit Anti-Moucherons 3-en-1 : https://www.junglefeed.fr/products/kit-anti-moucherons-3-en-1-naturel-nematodes-diatomee-piege
 
-SOINS & PURINS :
+INSECTICIDES & SOINS :
 - Anti-Pucerons Naturel : https://www.junglefeed.fr/products/anti-pucerons-naturel-spray-500ml
 - Huile de Neem : https://www.junglefeed.fr/products/huile-de-neem-prete-a-lemploi-500-ml
 - Purin d'Ortie : https://www.junglefeed.fr/products/purin-dortie-agriculture-biologique-made-in-france
@@ -49,7 +50,7 @@ NUTRITION :
 - Jungle Stick : https://www.junglefeed.fr/products/engrais-naturel-1-jungle-stick
 """
 
-# 4. INTERFACE UTILISATEUR
+# 4. INTERFACE
 st.image("https://www.junglefeed.fr/cdn/shop/files/Logo_Jungle_Feed_Web.png", width=180)
 st.title("🌿 Dr. Plant")
 st.write("Diagnostic IA instantané par Jungle Feed.")
@@ -65,12 +66,13 @@ if img_file:
     if st.button("Lancer le diagnostic Expert 🚀"):
         with st.spinner("L'expert Jungle Feed analyse votre plante..."):
             try:
+                # Utilisation du modèle 2026
                 model = genai.GenerativeModel('gemini-2.5-flash')
                 
                 prompt = f"""
                 Tu es l'agronome expert Jungle Feed. 
                 1. Identifie la plante et le problème.
-                2. Donne 2 conseils de soin.
+                2. Donne 2 conseils de soin immédiats.
                 3. Recommande EXCLUSIVEMENT le produit adapté ici : {CATALOGUE}.
                 """
                 
@@ -83,11 +85,22 @@ if img_file:
                 st.markdown('</div>', unsafe_allow_html=True)
                 st.balloons()
 
-                # --- PARTIE WEBHOOK MAKE ---
-                # REMPLACE L'URL CI-DESSOUS PAR CELLE DE TON MODULE MAKE
-                webhook_url = "https://hook.eu1.make.com/78bx3x46hpkkn0ksaojisja7px9runbm" 
+                # --- PARTIE AUTOMATION (MAKE.COM) ---
+                # Remplace l'URL ci-dessous par ton lien Webhook de Make
+                webhook_url = "TON_URL_WEBHOOK_ICI" 
                 
+                # Création du paquet de données (Payload)
                 payload = {
                     "source": "Dr. Plant App",
                     "status": "Success",
-                    "diagnostic_resume": response.text[:300] #
+                    "diagnostic_resume": response.text[:500]
+                }
+                
+                # Envoi des données
+                try:
+                    requests.post(webhook_url, json=payload, timeout=2)
+                except:
+                    pass # L'app ne plante pas si le Webhook échoue
+
+            except Exception as e:
+                st.error(f"Erreur d'analyse : {e}")
