@@ -1,13 +1,10 @@
 import streamlit as st
 import google.generativeai as genai
 from PIL import Image
+import requests  # Nécessaire pour envoyer les données à Make
 
-# 1. CONFIGURATION & DESIGN
+# 1. CONFIGURATION VISUELLE (Branding Jungle Feed)
 st.set_page_config(page_title="Dr. Plant | Jungle Feed", page_icon="🌿", layout="centered")
-
-# Initialisation de la mémoire de session
-if "user_data_captured" not in st.session_state:
-    st.session_state.user_data_captured = False
 
 st.markdown("""
     <style>
@@ -21,21 +18,17 @@ st.markdown("""
         padding: 25px; border-radius: 15px; background-color: white;
         border-left: 8px solid #2D5A27; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     }
-    .form-box {
-        padding: 20px; border: 1px solid #e0e0e0; border-radius: 15px; background: #ffffff;
-        margin-top: 20px;
-    }
     </style>
 """, unsafe_allow_html=True)
 
-# 2. CONFIGURATION IA
+# 2. CONFIGURATION IA (Version 2026)
 if "GEMINI_API_KEY" in st.secrets:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"], transport='rest')
 else:
     st.error("⚠️ Clé API manquante dans les Secrets Streamlit.")
     st.stop()
 
-# 3. CATALOGUE JUNGLE FEED COMPLET
+# 3. CATALOGUE JUNGLE FEED
 CATALOGUE = """
 KITS COMPLETS :
 - Kit Ultime Anti-Thrips : https://www.junglefeed.fr/products/kit-ultime-anti-thrips
@@ -44,22 +37,24 @@ KITS COMPLETS :
 - Kit Anti-Moucherons 3-en-1 : https://www.junglefeed.fr/products/kit-anti-moucherons-3-en-1-naturel-nematodes-diatomee-piege
 
 SOINS & PURINS :
-- Anti-Pucerons Naturel Spray : https://www.junglefeed.fr/products/anti-pucerons-naturel-spray-500ml
-- Huile de Neem Prête à l'Emploi : https://www.junglefeed.fr/products/huile-de-neem-prete-a-lemploi-500-ml
-- Purin d'Ortie / Fougère / Prêle / Ail / Sureau : https://www.junglefeed.fr/collections/soins
-- Savon noir 500ml : https://www.junglefeed.fr/products/savon-noir-500ml-pret-a-lemploi-made-in-france
+- Anti-Pucerons Naturel : https://www.junglefeed.fr/products/anti-pucerons-naturel-spray-500ml
+- Huile de Neem : https://www.junglefeed.fr/products/huile-de-neem-prete-a-lemploi-500-ml
+- Purin d'Ortie : https://www.junglefeed.fr/products/purin-dortie-agriculture-biologique-made-in-france
+- Purin de Fougère : https://www.junglefeed.fr/products/purin-de-fougere-insecticide-repulsif-naturel-500ml
+- Purin de Prêle : https://www.junglefeed.fr/products/purin-de-prele-agriculture-biologique-made-in-france
+- Purin d'Ail : https://www.junglefeed.fr/products/purin-dail-fongicide-repulsif-total-pret-a-lemploi
 
 NUTRITION :
 - Engrais Plantes d'Intérieur : https://www.junglefeed.fr/products/engrais-plantes-dinterieur-et-plantes-rares-500ml
-- Jungle Stick (Lot de 4 ou 10) : https://www.junglefeed.fr/products/engrais-naturel-lot-de-4-jungle-stick
+- Jungle Stick : https://www.junglefeed.fr/products/engrais-naturel-1-jungle-stick
 """
 
-# 4. INTERFACE
+# 4. INTERFACE UTILISATEUR
 st.image("https://www.junglefeed.fr/cdn/shop/files/Logo_Jungle_Feed_Web.png", width=180)
 st.title("🌿 Dr. Plant")
-st.write("Diagnostic IA & Solutions Jungle Feed.")
+st.write("Diagnostic IA instantané par Jungle Feed.")
 
-img_file = st.camera_input("📸 Prenez une photo de la zone touchée")
+img_file = st.camera_input("Prenez une photo de la zone touchée")
 if not img_file:
     img_file = st.file_uploader("Ou importez une photo", type=['jpg', 'png', 'jpeg'])
 
@@ -67,50 +62,32 @@ if img_file:
     img = Image.open(img_file)
     st.image(img, use_container_width=True)
     
-    # --- LOGIQUE DE CAPTURE DE DATA ---
-    if not st.session_state.user_data_captured:
-        st.markdown('<div class="form-box">', unsafe_allow_html=True)
-        st.subheader("📬 Recevoir mon diagnostic")
-        email = st.text_input("Votre Email")
-        ville = st.text_input("Votre Ville")
-        
-        st.markdown(f"<p style='font-size: 0.8rem; color: gray;'>RGPD : En validant, vous acceptez que Jungle Feed utilise votre email pour vous envoyer votre diagnostic et des conseils personnalisés.</p>", unsafe_allow_html=True)
-        rgpd = st.checkbox("J'accepte les conditions")
-        
-        if st.button("Obtenir mon diagnostic Expert 🚀"):
-            if email and ville and rgpd:
-                # Stockage temporaire dans la session
-                st.session_state.user_data_captured = True
-                st.session_state.user_email = email
-                st.session_state.user_ville = ville
-                st.rerun()
-            else:
-                st.warning("Veuillez remplir tous les champs et cocher la case RGPD.")
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    # --- LOGIQUE D'ANALYSE (S'affiche après capture) ---
-    else:
-        if st.button("Lancer l'analyse 🚀"):
-            with st.spinner(f"Analyse en cours pour votre plante à {st.session_state.user_ville}..."):
-                try:
-                    model = genai.GenerativeModel('gemini-2.5-flash')
-                    prompt = f"""
-                    Tu es l'agronome expert Jungle Feed. Analyse cette photo. 
-                    1. Identifie la plante et le problème.
-                    2. Recommande EXCLUSIVEMENT un produit de cette liste : {CATALOGUE}.
-                    3. Mentionne que le diagnostic est aussi envoyé à {st.session_state.user_email}.
-                    Sois pro et utilise des emojis.
-                    """
-                    response = model.generate_content([prompt, img])
-                    
-                    st.markdown('<div class="report-card">', unsafe_allow_html=True)
-                    st.markdown(f"### ✅ Diagnostic pour {st.session_state.user_email}")
-                    st.markdown(response.text)
-                    st.markdown('</div>', unsafe_allow_html=True)
-                    st.balloons()
-                except Exception as e:
-                    st.error(f"Erreur d'analyse : {e}")
+    if st.button("Lancer le diagnostic Expert 🚀"):
+        with st.spinner("L'expert Jungle Feed analyse votre plante..."):
+            try:
+                model = genai.GenerativeModel('gemini-2.5-flash')
+                
+                prompt = f"""
+                Tu es l'agronome expert Jungle Feed. 
+                1. Identifie la plante et le problème.
+                2. Donne 2 conseils de soin.
+                3. Recommande EXCLUSIVEMENT le produit adapté ici : {CATALOGUE}.
+                """
+                
+                response = model.generate_content([prompt, img])
+                
+                # Affichage des résultats
+                st.markdown('<div class="report-card">', unsafe_allow_html=True)
+                st.markdown("### 📋 Rapport du Dr. Plant")
+                st.markdown(response.text)
+                st.markdown('</div>', unsafe_allow_html=True)
+                st.balloons()
 
-        if st.button("Réinitialiser (Scanner une autre plante)"):
-            # On ne réinitialise PAS user_data_captured pour ne pas redemander le mail
-            st.rerun()
+                # --- PARTIE WEBHOOK MAKE ---
+                # REMPLACE L'URL CI-DESSOUS PAR CELLE DE TON MODULE MAKE
+                webhook_url = "TON_URL_WEBHOOK_MAKE_ICI" 
+                
+                payload = {
+                    "source": "Dr. Plant App",
+                    "status": "Success",
+                    "diagnostic_resume": response.text[:300] #
