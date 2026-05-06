@@ -85,7 +85,7 @@ if img_file:
 
                 # --- PARTIE WEBHOOK MAKE ---
                 # REMPLACE L'URL CI-DESSOUS PAR CELLE DE TON MODULE MAKE
-                webhook_url = "TON_URL_WEBHOOK_MAKE_ICI" 
+                webhook_url = "https://hook.eu1.make.com/78bx3x46hpkkn0ksaojisja7px9runbm" 
                 
                 payload = {
                     "source": "Dr. Plant App",
