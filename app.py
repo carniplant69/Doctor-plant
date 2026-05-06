@@ -2,99 +2,75 @@ import streamlit as st
 import google.generativeai as genai
 from PIL import Image
 
-# 1. CONFIGURATION DE LA PAGE (Look & Feel Pro)
-st.set_page_config(
-    page_title="Dr. Plant by Jungle Feed",
-    page_icon="🌿",
-    layout="centered"
-)
+# 1. CONFIGURATION (Design & Icône)
+st.set_page_config(page_title="Dr. Plant | Jungle Feed", page_icon="🌿", layout="wide")
 
-# Design personnalisé aux couleurs de Jungle Feed
+# CSS pour un look "App Mobile"
 st.markdown("""
     <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
+    .main { background-color: #f9fbf9; }
     .stButton>button {
-        background-color: #2D5A27;
-        color: white;
-        border-radius: 12px;
-        border: none;
-        height: 3em;
-        width: 100%;
-        font-weight: bold;
-        font-size: 18px;
+        background: linear-gradient(135deg, #2D5A27 0%, #4A8B3F 100%);
+        color: white; border-radius: 25px; height: 3.5em; width: 100%;
+        font-weight: bold; font-size: 1.1rem; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
-    .stButton>button:hover {
-        background-color: #3d7a35;
-        color: white;
+    .status-card {
+        padding: 20px; border-radius: 15px; background-color: white;
+        border-left: 5px solid #2D5A27; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
     </style>
 """, unsafe_allow_html=True)
 
-# 2. VÉRIFICATION DE LA CLÉ API
+# 2. BARRE LATÉRALE (Sidebar)
+with st.sidebar:
+    st.image("https://www.junglefeed.fr/cdn/shop/files/Logo_Jungle_Feed_Web.png", width=150)
+    st.title("Aide & Infos")
+    st.info("Prenez une photo bien nette des feuilles (dessus et dessous) pour un meilleur diagnostic.")
+    st.divider()
+    st.write("📩 Un doute ? [Contactez le SAV](https://www.junglefeed.fr)")
+
+# 3. EN-TÊTE
+col_header1, col_header2 = st.columns([1, 4])
+with col_header1:
+    st.title("🌿")
+with col_header2:
+    st.title("Dr. Plant")
+    st.caption("L'intelligence artificielle au service de vos plantes")
+
+# 4. CONFIG IA
 if "GEMINI_API_KEY" in st.secrets:
-    # transport='rest' est crucial en 2026 pour la stabilité sur Streamlit Cloud
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"], transport='rest')
 else:
-    st.error("⚠️ Erreur : Clé API manquante. Ajoutez GEMINI_API_KEY dans les Secrets de Streamlit.")
+    st.error("Clé API manquante dans les Secrets.")
     st.stop()
 
-# 3. CATALOGUE JUNGLE FEED (Base de connaissances de l'IA)
-CATALOGUE = """
-Produits disponibles sur https://www.junglefeed.fr :
-- Kit Anti-Thrips Ultime : https://www.junglefeed.fr/products/kit-ultime-anti-thrips (Pour thrips, moucherons, acariens)
-- Kit Spécial Cochenille : https://www.junglefeed.fr/products/kit-special-cochenille-solution-complete-anti-cochenilles (Pour cochenilles farineuses ou à bouclier)
-- Anti-Pucerons Naturel : https://www.junglefeed.fr/products/anti-pucerons-naturel-spray-500ml (Pour tous types de pucerons)
-- Engrais Bio : https://www.junglefeed.fr/products/engrais-plantes-dinterieur-et-plantes-rares-500ml (Pour booster la croissance)
-- Huile de Neem : https://www.junglefeed.fr/products/huile-de-neem-prete-a-lemploi-500-ml (Protection et brillant des feuilles)
-"""
+# 5. ZONE DE CAPTURE
+col1, col2 = st.columns([1, 1])
 
-# 4. INTERFACE UTILISATEUR
-st.image("https://www.junglefeed.fr/cdn/shop/files/Logo_Jungle_Feed_Web.png", width=200) # Optionnel : ajoute ton logo
-st.title("🌿 Dr. Plant")
-st.subheader("Diagnostic IA & Solutions Naturelles")
+with col1:
+    st.markdown("### 📸 Scanner")
+    img_file = st.camera_input("Scanner", label_visibility="collapsed")
+    if not img_file:
+        img_file = st.file_uploader("Ou importer une photo", type=['jpg', 'png', 'jpeg'])
 
-# Choix de la méthode
-option = st.radio("Choisissez votre méthode :", ("📸 Prendre une photo", "📂 Charger une image"), label_visibility="collapsed")
-
-if option == "📸 Prendre une photo":
-    img_file = st.camera_input("Scanner la plante")
-else:
-    img_file = st.file_uploader("Choisir une image depuis votre galerie", type=['jpg', 'png', 'jpeg'])
-
-# 5. LOGIQUE D'ANALYSE
+# 6. ANALYSE ET RÉSULTATS
 if img_file:
-    img = Image.open(img_file)
-    st.image(img, use_container_width=True, caption="Analyse en cours...")
-    
-    if st.button("Lancer le diagnostic Jungle Feed 🚀"):
-        with st.spinner("L'expert Jungle Feed analyse les cellules de votre plante..."):
-            try:
-                # Utilisation du modèle Gemini 2.5 Flash (Standard 2026)
-                model = genai.GenerativeModel('gemini-2.5-flash')
-                
-                prompt = f"""
-                Tu es l'agronome expert de la marque Jungle Feed. 
-                Ton rôle est d'analyser cette photo de plante :
-                1. Donne le nom de la plante.
-                2. Identifie précisément la maladie ou le parasite (sois très spécifique).
-                3. Propose une solution de soin immédiate.
-                4. Recommande EXCLUSIVEMENT le produit le plus adapté dans cette liste : {CATALOGUE}.
-                
-                Réponds de manière pro, bienveillante et avec des emojis. 
-                Si la plante est en parfaite santé, félicite l'utilisateur et propose l'Engrais Bio pour l'entretien.
-                """
-                
-                response = model.generate_content([prompt, img])
-                
-                st.markdown("---")
-                st.success("### ✅ Diagnostic de l'Expert")
-                st.markdown(response.text)
-                st.balloons()
-                
-            except Exception as e:
-                if "429" in str(e):
-                    st.error("⏳ Trop de demandes en même temps. Attendez 1 minute avant de recommencer.")
-                else:
-                    st.error(f"Une petite erreur est survenue. Vérifiez votre connexion. (Détails : {e})")
+    with col2:
+        img = Image.open(img_file)
+        st.image(img, use_container_width=True)
+        
+        if st.button("Lancer le diagnostic Jungle Feed 🚀"):
+            with st.spinner("Analyse moléculaire en cours..."):
+                try:
+                    model = genai.GenerativeModel('gemini-2.5-flash')
+                    prompt = "Expert agronome Jungle Feed. Nom plante, maladie précise, soin et produit https://www.junglefeed.fr. Format propre avec emojis."
+                    
+                    response = model.generate_content([prompt, img])
+                    
+                    st.markdown('<div class="status-card">', unsafe_allow_html=True)
+                    st.markdown("### 📋 Rapport d'Expertise")
+                    st.write(response.text)
+                    st.markdown('</div>', unsafe_allow_html=True)
+                    st.balloons()
+                except Exception as e:
+                    st.error(f"Erreur : {e}")
