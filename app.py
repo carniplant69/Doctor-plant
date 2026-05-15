@@ -28,11 +28,24 @@ except Exception:
 st.markdown("### 📸 Prends une photo de ta plante")
 st.caption("Formats acceptés : JPG, PNG, WEBP · Résolution recommandée : 800px minimum")
 
-fichier = st.file_uploader(
-    label="Glisse ta photo ici ou clique pour parcourir",
-    type=["jpg", "jpeg", "png", "webp"],
-    label_visibility="collapsed"
-)
+# Choix entre caméra et upload
+onglet_camera, onglet_upload = st.tabs(["📷 Prendre une photo", "🖼️ Uploader une image"])
+
+fichier = None
+
+with onglet_camera:
+    photo = st.camera_input("Pointe ta caméra vers ta plante")
+    if photo:
+        fichier = photo
+
+with onglet_upload:
+    upload = st.file_uploader(
+        label="Glisse ta photo ici ou clique pour parcourir",
+        type=["jpg", "jpeg", "png", "webp"],
+        label_visibility="collapsed"
+    )
+    if upload:
+        fichier = upload
 
 # ─── Analyse ──────────────────────────────────────────────────────────
 if fichier:
