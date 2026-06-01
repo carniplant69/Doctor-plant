@@ -1,5 +1,3 @@
-# Moteur d'analyse Gemini Vision pour Doctor Plant
-
 import google.generativeai as genai
 import json
 import re
@@ -26,35 +24,24 @@ INSTRUCTIONS STRICTES :
 
 RÈGLES :
 - Si ce n'est pas une plante : est_une_plante = false, tous les autres champs = null
-- Problèmes possibles : thrips, cochenilles, araignées rouges, moucherons, pucerons, champignon, moisissure, mildiou, oïdium, carence, surrosage, manque eau
+- Problèmes possibles : thrips, cochenilles, araignées rouges, moucherons, pucerons, champignon, moisissure, mildiou, oïdium, carence, surrosage, manque eau, insectes
 - Sois précis et bienveillant dans le diagnostic
 - Langue : français uniquement
 """
 
 def analyser_image(image_pil, api_key: str) -> dict:
-    """
-    Envoie l'image à Gemini Vision et retourne le diagnostic structuré.
-    
-    Args:
-        image_pil: Image PIL uploadée par l'utilisateur
-        api_key: Clé API Gemini
-    
-    Returns:
-        dict: Résultat du diagnostic structuré
-    """
     try:
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel('gemini-2.5-flash')
-        
+
         response = model.generate_content([PROMPT_SYSTEME, image_pil])
-        
-        # Nettoyage de la réponse pour extraire le JSON
+
         texte = response.text.strip()
         texte = re.sub(r'```json\s*|\s*```', '', texte).strip()
-        
+
         resultat = json.loads(texte)
         return {"succes": True, "data": resultat}
-        
+
     except json.JSONDecodeError:
         return {
             "succes": False,
@@ -68,38 +55,31 @@ def analyser_image(image_pil, api_key: str) -> dict:
 
 
 def trouver_produits(diagnostic: dict) -> dict:
-    """
-    Mappe le diagnostic aux produits Jungle Feed appropriés.
-    
-    Args:
-        diagnostic: Dict retourné par analyser_image
-    
-    Returns:
-        dict: Produits curatifs ou préventifs à recommander
-    """
     if diagnostic.get("etat") == "saine":
         return {
             "type": "preventif",
-            "produits": PRODUITS_PREVENTIFS[:3]
+            "produits": PRODUITS_PREVENTIFS
         }
-    
+
     problemes = diagnostic.get("problemes", [])
     produits_trouves = []
-    
+    ids_vus = set()
+
     for probleme in problemes:
         probleme_lower = probleme.lower()
         for keyword, cle_catalogue in KEYWORDS_MAP.items():
             if keyword in probleme_lower:
                 produits = PRODUITS_CURATIFS.get(cle_catalogue, [])
                 for p in produits:
-                    if p not in produits_trouves:
+                    uid = p["nom"]
+                    if uid not in ids_vus:
+                        ids_vus.add(uid)
                         produits_trouves.append(p)
-    
-    # Fallback si aucun produit spécifique trouvé
+
     if not produits_trouves:
-        produits_trouves = [PRODUITS_CURATIFS["fonte_seedling"][0]]
-    
+        produits_trouves = PRODUITS_CURATIFS.get("insectes", [])
+
     return {
         "type": "curatif",
-        "produits": produits_trouves[:3]
+        "produits": produits_trouves
     }
