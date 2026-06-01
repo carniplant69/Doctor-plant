@@ -137,13 +137,7 @@ def afficher_diagnostic(diagnostic: dict):
 
     conseil_html = ""
     if conseil:
-        conseil_html = f"""
-        <div style="background:#F1F8E9;border-radius:12px;padding:0.8rem 1rem;margin-top:1rem;">
-            <p style="margin:0;font-size:0.88rem;color:#2E7D32;">
-                <strong>💡 Conseil immédiat :</strong> {conseil}
-            </p>
-        </div>
-        """
+        conseil_html = f'<div style="background:#F1F8E9;border-radius:12px;padding:0.8rem 1rem;margin-top:1rem;"><p style="margin:0;font-size:0.88rem;color:#2E7D32;"><strong>&#128161; Conseil immédiat :</strong> {conseil}</p></div>'
 
     urgence_html = ""
     if etat == "malade":
