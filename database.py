@@ -15,7 +15,7 @@ import streamlit as st
 
 def get_supabase():
     url = st.secrets["https://urczaoqshqiuxtoroqqw.supabase.co"]
-    key = st.secrets["sb_secret_6TYG5Mhya-NMp6pJpfJ52Q_X31wBMBV"]
+    key = st.secrets["sb_publishable_qY0wvhOnIVQAWrzVsXXBlA_KFi99cDW"]
     return create_client(url, key)
 
 def create_user(email: str, password_hash: str, rgpd: bool) -> dict:
