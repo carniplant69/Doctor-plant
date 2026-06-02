@@ -5,6 +5,9 @@ from ui_components import (
     inject_css, afficher_hero,
     afficher_diagnostic, afficher_produits, get_logo_base64
 )
+from auth import afficher_auth
+from backoffice import afficher_backoffice
+from database import save_diagnostic, save_product_click
 
 st.set_page_config(
     page_title="Doctor Plant · Jungle Feed",
@@ -14,15 +17,56 @@ st.set_page_config(
 
 inject_css()
 
-logo_b64 = get_logo_base64("logo.png")
-afficher_hero(logo_b64)
+# Initialisation session
+if "user" not in st.session_state:
+    st.session_state["user"] = None
+if "user_id" not in st.session_state:
+    st.session_state["user_id"] = None
+if "diagnostic_id" not in st.session_state:
+    st.session_state["diagnostic_id"] = None
 
+# Clé API
 try:
     API_KEY = st.secrets["GEMINI_API_KEY"]
+    ADMIN_EMAIL = st.secrets.get("ADMIN_EMAIL", "")
 except Exception:
     st.error("Clé API Gemini manquante.")
     st.stop()
 
+# Backoffice admin
+user = st.session_state.get("user")
+if user and user.get("is_admin"):
+    afficher_backoffice()
+    st.stop()
+
+# Hero
+logo_b64 = get_logo_base64("logo.png")
+afficher_hero(logo_b64)
+
+# Navigation
+if user:
+    col_nav1, col_nav2 = st.columns([3, 1])
+    with col_nav1:
+        st.markdown(
+            '<p style="font-size:0.85rem;color:#777777;margin:0 0 1rem 0;">👋 Bonjour <strong>' + user["email"] + '</strong></p>',
+            unsafe_allow_html=True
+        )
+    with col_nav2:
+        if st.button("Déco 🚪", use_container_width=True):
+            st.session_state.clear()
+            st.rerun()
+else:
+    col_nav1, col_nav2 = st.columns([3, 1])
+    with col_nav2:
+        if st.button("Connexion 👤", use_container_width=True):
+            st.session_state["show_auth"] = True
+
+# Auth
+if not user and st.session_state.get("show_auth"):
+    afficher_auth()
+    st.stop()
+
+# Zone diagnostic
 st.markdown(
     '<div style="background:white;border-radius:20px;padding:1.2rem;margin-bottom:1rem;box-shadow:0 2px 12px rgba(0,0,0,0.06);">'
     + '<p style="font-size:1rem;font-weight:800;color:#111111;margin:0 0 0.3rem 0;">📸 Diagnostique ta plante</p>'
@@ -32,7 +76,6 @@ st.markdown(
 )
 
 onglet_camera, onglet_upload = st.tabs(["📷 Caméra", "🖼️ Galerie"])
-
 fichier = None
 
 with onglet_camera:
@@ -100,9 +143,41 @@ if fichier:
             )
             st.stop()
 
+        # Sauvegarde diagnostic si connecté
+        diag_id = None
+        if st.session_state.get("user_id"):
+            diag_id = save_diagnostic(st.session_state["user_id"], diagnostic)
+            st.session_state["diagnostic_id"] = diag_id
+
         afficher_diagnostic(diagnostic)
         recommandations = trouver_produits(diagnostic)
-        afficher_produits(recommandations)
+
+        # Tracking clics produits
+        produits = recommandations.get("produits", [])
+        for produit in produits:
+            col_prod, col_btn = st.columns([3, 1])
+            with col_prod:
+                st.markdown(
+                    '<div style="background:white;border-radius:16px;padding:0.9rem 1rem;box-shadow:0 2px 10px rgba(0,0,0,0.05);border:1px solid #EEEEEE;display:flex;align-items:center;gap:0.8rem;">'
+                    + '<span style="font-size:1.8rem;">' + produit["emoji"] + '</span>'
+                    + '<div>'
+                    + '<p style="font-size:0.88rem;font-weight:700;color:#111111;margin:0;">' + produit["nom"] + '</p>'
+                    + '<p style="font-size:0.75rem;color:#777777;margin:0;">' + produit["description"] + '</p>'
+                    + '</div></div>',
+                    unsafe_allow_html=True
+                )
+            with col_btn:
+                if st.button("🛍️", key="buy_" + produit["nom"], help="Acheter " + produit["nom"]):
+                    save_product_click(
+                        st.session_state.get("user_id"),
+                        produit["nom"],
+                        produit["url"],
+                        st.session_state.get("diagnostic_id")
+                    )
+                    st.markdown(
+                        '<meta http-equiv="refresh" content="0;url=' + produit["url"] + '">',
+                        unsafe_allow_html=True
+                    )
 
 else:
     st.markdown(
