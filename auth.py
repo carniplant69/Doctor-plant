@@ -100,7 +100,11 @@ def afficher_auth():
                     st.session_state["user"] = user
                     st.session_state["user_id"] = user["id"]
                     st.session_state["show_auth"] = False
-                    st.success("Compte créé ! Bienvenue 🌿 Recharge la page.")
+                    st.success("Compte créé ! Bienvenue 🌿")
+                    st.markdown(
+                        '<meta http-equiv="refresh" content="2">',
+                        unsafe_allow_html=True
+                    )
                 else:
                     if "duplicate" in result["erreur"].lower():
                         st.error("Cet email est déjà utilisé")
