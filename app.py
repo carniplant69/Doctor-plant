@@ -32,24 +32,18 @@ except Exception:
 user = st.session_state.get("user")
 logo_b64 = get_logo_base64("logo.png")
 
-# ── PAGE ADMIN ──────────────────────────────────────────────────────────
 if user and user.get("is_admin"):
     afficher_backoffice()
 
-# ── PAGE AUTH ───────────────────────────────────────────────────────────
 elif not user and st.session_state["show_auth"]:
     afficher_hero(logo_b64)
-    col1, col2 = st.columns([3, 1])
-    with col2:
-        if st.button("✕ Fermer", use_container_width=True):
-            st.session_state["show_auth"] = False
+    if st.button("← Retour", use_container_width=True):
+        st.session_state["show_auth"] = False
     afficher_auth()
 
-# ── PAGE PRINCIPALE ─────────────────────────────────────────────────────
 else:
     afficher_hero(logo_b64)
 
-    # Navigation
     col1, col2 = st.columns([3, 1])
     if user:
         with col1:
@@ -67,7 +61,6 @@ else:
             if st.button("👤 Connexion", use_container_width=True):
                 st.session_state["show_auth"] = True
 
-    # Zone photo
     st.markdown(
         '<div style="background:white;border-radius:20px;padding:1.2rem;'
         'margin-bottom:1rem;box-shadow:0 2px 12px rgba(0,0,0,0.06);">'
@@ -79,13 +72,20 @@ else:
         unsafe_allow_html=True
     )
 
-    onglet_camera, onglet_upload = st.tabs(["📷 Caméra", "🖼️ Galerie"])
+    # Mode choix SANS tabs
+    mode = st.radio(
+        "Comment veux-tu ajouter ta photo ?",
+        ["📷 Prendre une photo", "🖼️ Uploader depuis la galerie"],
+        horizontal=True,
+        label_visibility="collapsed"
+    )
+
     fichier = None
 
-    with onglet_camera:
+    if mode == "📷 Prendre une photo":
         st.markdown(
             '<div style="background:#F5F5F5;border-radius:14px;'
-            'padding:0.8rem 1rem;margin-bottom:0.8rem;'
+            'padding:0.8rem 1rem;margin:0.8rem 0;'
             'border-left:3px solid #333333;">'
             '<p style="margin:0;font-size:0.82rem;color:#111111;">'
             '📌 <strong>Astuce :</strong> Approche-toi de la plante, '
@@ -93,16 +93,16 @@ else:
             unsafe_allow_html=True
         )
         photo = st.camera_input(
-            label="Pointer vers la plante et appuyer sur le bouton",
-            label_visibility="visible"
+            label="Pointer vers la plante",
+            label_visibility="collapsed"
         )
         if photo:
             fichier = photo
 
-    with onglet_upload:
+    else:
         st.markdown(
             '<div style="background:#F5F5F5;border-radius:14px;'
-            'padding:0.8rem 1rem;margin-bottom:0.8rem;'
+            'padding:0.8rem 1rem;margin:0.8rem 0;'
             'border-left:3px solid #333333;">'
             '<p style="margin:0;font-size:0.82rem;color:#111111;">'
             '📌 <strong>Astuce :</strong> Formats acceptés JPG, PNG, WEBP</p></div>',
@@ -118,14 +118,6 @@ else:
 
     if fichier:
         image = Image.open(fichier)
-
-        st.markdown(
-            '<div style="background:white;border-radius:20px;padding:1rem;'
-            'margin:0.8rem 0;box-shadow:0 2px 12px rgba(0,0,0,0.06);">'
-            '<p style="font-size:0.82rem;color:#777777;'
-            'margin:0 0 0.5rem 0;font-weight:600;">📷 Votre photo</p></div>',
-            unsafe_allow_html=True
-        )
         st.image(image, use_container_width=True)
         st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
 
@@ -245,28 +237,31 @@ else:
             'box-shadow:0 2px 12px rgba(0,0,0,0.05);">'
             '<div style="background:#F5F5F5;width:70px;height:70px;'
             'border-radius:50%;display:flex;align-items:center;'
-            'justify-content:center;margin:0 auto 1rem auto;font-size:2rem;">🪴</div>'
+            'justify-content:center;margin:0 auto 1rem auto;'
+            'font-size:2rem;">🪴</div>'
             '<p style="font-weight:800;color:#111111;font-size:1rem;'
             'margin:0 0 1rem 0;">Comment ça marche ?</p>'
             '<div style="text-align:left;">'
-            '<div style="display:flex;align-items:center;gap:0.8rem;margin-bottom:0.8rem;">'
-            '<div style="background:#EEEEEE;border-radius:50%;width:32px;height:32px;'
-            'display:flex;align-items:center;justify-content:center;'
-            'font-size:0.9rem;flex-shrink:0;">1️⃣</div>'
+            '<div style="display:flex;align-items:center;'
+            'gap:0.8rem;margin-bottom:0.8rem;">'
+            '<div style="background:#EEEEEE;border-radius:50%;'
+            'width:32px;height:32px;display:flex;align-items:center;'
+            'justify-content:center;font-size:0.9rem;flex-shrink:0;">1️⃣</div>'
             '<p style="margin:0;font-size:0.88rem;color:#555555;">'
             'Prends une photo de ta plante</p></div>'
-            '<div style="display:flex;align-items:center;gap:0.8rem;margin-bottom:0.8rem;">'
-            '<div style="background:#EEEEEE;border-radius:50%;width:32px;height:32px;'
-            'display:flex;align-items:center;justify-content:center;'
-            'font-size:0.9rem;flex-shrink:0;">2️⃣</div>'
+            '<div style="display:flex;align-items:center;'
+            'gap:0.8rem;margin-bottom:0.8rem;">'
+            '<div style="background:#EEEEEE;border-radius:50%;'
+            'width:32px;height:32px;display:flex;align-items:center;'
+            'justify-content:center;font-size:0.9rem;flex-shrink:0;">2️⃣</div>'
             '<p style="margin:0;font-size:0.88rem;color:#555555;">'
             'L\'IA analyse et détecte les problèmes</p></div>'
             '<div style="display:flex;align-items:center;gap:0.8rem;">'
-            '<div style="background:#EEEEEE;border-radius:50%;width:32px;height:32px;'
-            'display:flex;align-items:center;justify-content:center;'
-            'font-size:0.9rem;flex-shrink:0;">3️⃣</div>'
+            '<div style="background:#EEEEEE;border-radius:50%;'
+            'width:32px;height:32px;display:flex;align-items:center;'
+            'justify-content:center;font-size:0.9rem;flex-shrink:0;">3️⃣</div>'
             '<p style="margin:0;font-size:0.88rem;color:#555555;">'
-            'Nous te proposons les meilleurs produits naturels pour ta plante</p>'
-            '</div></div></div>',
+            'Nous te proposons les meilleurs produits naturels pour ta plante'
+            '</p></div></div></div>',
             unsafe_allow_html=True
         )
