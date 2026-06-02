@@ -24,6 +24,15 @@ if "user_id" not in st.session_state:
     st.session_state["user_id"] = None
 if "diagnostic_id" not in st.session_state:
     st.session_state["diagnostic_id"] = None
+if "show_auth" not in st.session_state:
+    st.session_state["show_auth"] = False
+if "rerun" not in st.session_state:
+    st.session_state["rerun"] = False
+
+# Gestion rerun propre
+if st.session_state.get("rerun"):
+    st.session_state["rerun"] = False
+    st.rerun()
 
 # Clé API
 try:
@@ -43,12 +52,14 @@ if user and user.get("is_admin"):
 logo_b64 = get_logo_base64("logo.png")
 afficher_hero(logo_b64)
 
-# Navigation
+# Navigation utilisateur
 if user:
     col_nav1, col_nav2 = st.columns([3, 1])
     with col_nav1:
         st.markdown(
-            '<p style="font-size:0.85rem;color:#777777;margin:0 0 1rem 0;">👋 Bonjour <strong>' + user["email"] + '</strong></p>',
+            '<p style="font-size:0.85rem;color:#777777;margin:0 0 1rem 0;">👋 Bonjour <strong>'
+            + user["email"]
+            + '</strong></p>',
             unsafe_allow_html=True
         )
     with col_nav2:
@@ -59,9 +70,9 @@ else:
     col_nav1, col_nav2 = st.columns([3, 1])
     with col_nav2:
         if st.button("Connexion 👤", use_container_width=True):
-            st.session_state["show_auth"] = True
+            st.session_state["show_auth"] = not st.session_state.get("show_auth", False)
 
-# Auth
+# Affichage auth
 if not user and st.session_state.get("show_auth"):
     afficher_auth()
     st.stop()
@@ -150,12 +161,27 @@ if fichier:
             st.session_state["diagnostic_id"] = diag_id
 
         afficher_diagnostic(diagnostic)
-        recommandations = trouver_produits(diagnostic)
 
-        # Tracking clics produits
+        # Produits avec tracking
+        recommandations = trouver_produits(diagnostic)
+        type_reco = recommandations.get("type")
         produits = recommandations.get("produits", [])
+
+        if type_reco == "curatif":
+            titre_section = "🛒 Choisis ton traitement"
+            sous_titre = "Tous ces produits traitent ton problème · 100% naturels · Fabriqués en France"
+        else:
+            titre_section = "⭐ Garde ta plante en bonne santé !"
+            sous_titre = "Choisis parmi nos produits préventifs · 100% naturels · Fabriqués en France"
+
+        st.markdown(
+            '<p style="font-size:1.1rem;font-weight:800;color:#111111;margin:1.2rem 0 0.2rem 0;">' + titre_section + '</p>'
+            + '<p style="color:#777777;font-size:0.82rem;margin:0 0 0.8rem 0;">' + sous_titre + '</p>',
+            unsafe_allow_html=True
+        )
+
         for produit in produits:
-            col_prod, col_btn = st.columns([3, 1])
+            col_prod, col_btn = st.columns([4, 1])
             with col_prod:
                 st.markdown(
                     '<div style="background:white;border-radius:16px;padding:0.9rem 1rem;box-shadow:0 2px 10px rgba(0,0,0,0.05);border:1px solid #EEEEEE;display:flex;align-items:center;gap:0.8rem;">'
@@ -167,7 +193,7 @@ if fichier:
                     unsafe_allow_html=True
                 )
             with col_btn:
-                if st.button("🛍️", key="buy_" + produit["nom"], help="Acheter " + produit["nom"]):
+                if st.button("🛍️", key="buy_" + produit["nom"], help="Acheter"):
                     save_product_click(
                         st.session_state.get("user_id"),
                         produit["nom"],
@@ -175,9 +201,19 @@ if fichier:
                         st.session_state.get("diagnostic_id")
                     )
                     st.markdown(
-                        '<meta http-equiv="refresh" content="0;url=' + produit["url"] + '">',
+                        '<script>window.open("' + produit["url"] + '", "_blank");</script>',
                         unsafe_allow_html=True
                     )
+
+        # Footer boutique
+        st.markdown(
+            '<div style="background:linear-gradient(135deg,#1A1A1A,#444444);border-radius:20px;padding:1.3rem;text-align:center;margin-top:1rem;">'
+            + '<h3 style="color:white;margin:0 0 0.3rem 0;font-size:1rem;font-weight:800;">🌿 Toute la gamme Jungle Feed</h3>'
+            + '<p style="color:rgba(255,255,255,0.7);margin:0 0 0.8rem 0;font-size:0.82rem;">100% naturel · Fabriqué en France</p>'
+            + '<a href="https://www.junglefeed.fr" target="_blank" style="display:inline-block;background:white;color:#1A1A1A;padding:0.5rem 1.5rem;border-radius:50px;font-weight:800;font-size:0.85rem;text-decoration:none;">Visiter la boutique →</a>'
+            + '</div>',
+            unsafe_allow_html=True
+        )
 
 else:
     st.markdown(
