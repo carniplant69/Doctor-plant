@@ -22,16 +22,20 @@ def get_logo_base64(logo_path: str) -> str:
         return ""
 
 def inject_css():
+    st.markdown(
+        '<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">',
+        unsafe_allow_html=True
+    )
     st.markdown("""
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
-
         html, body, [class*="css"] {
             font-family: 'Nunito', sans-serif !important;
             background-color: #F5F5F5 !important;
         }
 
-        #MainMenu, footer, header { visibility: hidden; }
+        #MainMenu, footer, header {
+            visibility: hidden;
+        }
 
         .block-container {
             padding-top: 0 !important;
@@ -54,22 +58,23 @@ def inject_css():
             margin-top: 0.5rem !important;
         }
 
-        .stTabs [data-baseweb="tab-list"] {
-            gap: 6px !important;
+        .stRadio > div {
             background: #EEEEEE !important;
             border-radius: 16px !important;
             padding: 4px !important;
+            gap: 6px !important;
         }
 
-        .stTabs [data-baseweb="tab"] {
+        .stRadio > div > label {
             border-radius: 12px !important;
             padding: 0.5rem 1rem !important;
             font-weight: 600 !important;
             font-size: 0.9rem !important;
             color: #777777 !important;
+            cursor: pointer !important;
         }
 
-        .stTabs [aria-selected="true"] {
+        .stRadio > div > label[data-checked="true"] {
             background: #1A1A1A !important;
             color: white !important;
         }
@@ -92,7 +97,6 @@ def inject_css():
             border-radius: 12px !important;
             border: 1px solid #EEEEEE !important;
             padding: 0.6rem 1rem !important;
-            font-family: 'Nunito', sans-serif !important;
         }
 
         .stTextInput > div > div > input:focus {
@@ -107,10 +111,6 @@ def inject_css():
 
         .stAlert {
             border-radius: 12px !important;
-        }
-
-        .stSpinner > div {
-            border-top-color: #1A1A1A !important;
         }
 
         .stLinkButton > a {
@@ -215,7 +215,7 @@ def afficher_diagnostic(diagnostic: dict):
             'padding:0.8rem 1rem;margin-top:1rem;'
             'border-left:3px solid #1A1A1A;">'
             '<p style="margin:0;font-size:0.85rem;color:#111111;">'
-            '<strong>💡 Conseil :</strong> ' + conseil + '</p></div>'
+            '<strong>Conseil :</strong> ' + conseil + '</p></div>'
         )
 
     st.markdown(
