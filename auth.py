@@ -14,18 +14,25 @@ def is_valid_password(password: str) -> bool:
 
 def afficher_auth():
     st.markdown(
-        '<div style="background:white;border-radius:20px;padding:1.5rem;margin:1rem 0;box-shadow:0 2px 12px rgba(0,0,0,0.06);">'
-        + '<p style="font-size:1.1rem;font-weight:800;color:#111111;margin:0 0 0.3rem 0;">👤 Mon compte</p>'
-        + '<p style="font-size:0.82rem;color:#777777;margin:0 0 1rem 0;">Connecte-toi pour sauvegarder tes diagnostics</p>'
-        + '</div>',
+        '<div style="background:white;border-radius:20px;padding:1.5rem;'
+        'margin:1rem 0;box-shadow:0 2px 12px rgba(0,0,0,0.06);">'
+        '<p style="font-size:1.1rem;font-weight:800;color:#111111;margin:0 0 0.3rem 0;">'
+        '👤 Mon compte</p>'
+        '<p style="font-size:0.82rem;color:#777777;margin:0 0 1rem 0;">'
+        'Connecte-toi pour sauvegarder tes diagnostics</p></div>',
         unsafe_allow_html=True
     )
 
     onglet_login, onglet_register = st.tabs(["🔑 Connexion", "✨ Inscription"])
 
     with onglet_login:
-        email = st.text_input("Email", key="login_email", placeholder="ton@email.com")
-        password = st.text_input("Mot de passe", type="password", key="login_password", placeholder="••••••••")
+        email = st.text_input(
+            "Email", key="login_email", placeholder="ton@email.com"
+        )
+        password = st.text_input(
+            "Mot de passe", type="password",
+            key="login_password", placeholder="••••••••"
+        )
 
         if st.button("Se connecter", key="btn_login", use_container_width=True):
             if not email or not password:
@@ -40,30 +47,40 @@ def afficher_auth():
                         st.session_state["user"] = user
                         st.session_state["user_id"] = user["id"]
                         st.session_state["show_auth"] = False
-                        st.session_state["rerun"] = True
+                        st.success("Connexion réussie ! 🌿")
                     else:
                         st.error("Email ou mot de passe incorrect")
                 else:
                     st.error("Email ou mot de passe incorrect")
 
     with onglet_register:
-        email_r = st.text_input("Email", key="reg_email", placeholder="ton@email.com")
-        password_r = st.text_input("Mot de passe", type="password", key="reg_password", placeholder="8 caractères minimum")
-        password_r2 = st.text_input("Confirme le mot de passe", type="password", key="reg_password2", placeholder="••••••••")
+        email_r = st.text_input(
+            "Email", key="reg_email", placeholder="ton@email.com"
+        )
+        password_r = st.text_input(
+            "Mot de passe", type="password",
+            key="reg_password", placeholder="8 caractères minimum"
+        )
+        password_r2 = st.text_input(
+            "Confirme le mot de passe", type="password",
+            key="reg_password2", placeholder="••••••••"
+        )
 
         st.markdown(
-            '<div style="background:#F5F5F5;border-radius:12px;padding:1rem;margin:0.8rem 0;">'
-            + '<p style="font-size:0.78rem;color:#555555;margin:0;line-height:1.6;">'
-            + '🔒 <strong>Tes données sont protégées</strong><br>'
-            + 'Conformément au RGPD, tes données sont utilisées uniquement '
-            + 'pour sauvegarder tes diagnostics. Tu peux demander la '
-            + 'suppression de ton compte à tout moment. '
-            + 'Nous ne vendons jamais tes données.'
-            + '</p></div>',
+            '<div style="background:#F5F5F5;border-radius:12px;'
+            'padding:1rem;margin:0.8rem 0;">'
+            '<p style="font-size:0.78rem;color:#555555;margin:0;line-height:1.6;">'
+            '🔒 <strong>Tes données sont protégées</strong><br>'
+            'Conformément au RGPD, tes données sont utilisées uniquement '
+            'pour sauvegarder tes diagnostics. Tu peux demander la '
+            'suppression de ton compte à tout moment. '
+            'Nous ne vendons jamais tes données.</p></div>',
             unsafe_allow_html=True
         )
 
-        rgpd = st.checkbox("J'accepte la politique de confidentialité et le traitement de mes données personnelles")
+        rgpd = st.checkbox(
+            "J'accepte la politique de confidentialité et le traitement de mes données"
+        )
 
         if st.button("Créer mon compte", key="btn_register", use_container_width=True):
             if not email_r or not password_r or not password_r2:
@@ -83,9 +100,9 @@ def afficher_auth():
                     st.session_state["user"] = user
                     st.session_state["user_id"] = user["id"]
                     st.session_state["show_auth"] = False
-                    st.session_state["rerun"] = True
+                    st.success("Compte créé ! Bienvenue 🌿 Recharge la page.")
                 else:
                     if "duplicate" in result["erreur"].lower():
                         st.error("Cet email est déjà utilisé")
                     else:
-                        st.error("Erreur lors de la création du compte")
+                        st.error("Erreur : " + result["erreur"])
