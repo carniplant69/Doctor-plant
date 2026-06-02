@@ -67,54 +67,18 @@ else:
         '<p style="font-size:1rem;font-weight:800;color:#111111;margin:0 0 0.3rem 0;">'
         '📸 Diagnostique ta plante</p>'
         '<p style="font-size:0.82rem;color:#777777;margin:0;">'
-        'Photo nette et bien éclairée pour un meilleur résultat</p>'
+        'Uploade une photo de ta plante pour obtenir un diagnostic</p>'
         '</div>',
         unsafe_allow_html=True
     )
 
-    # Mode choix SANS tabs
-    mode = st.radio(
-        "Comment veux-tu ajouter ta photo ?",
-        ["📷 Prendre une photo", "🖼️ Uploader depuis la galerie"],
-        horizontal=True,
-        label_visibility="collapsed"
+    # UPLOAD UNIQUEMENT — sans caméra
+    upload = st.file_uploader(
+        label="Glisse ta photo ici · JPG, PNG, WEBP",
+        type=["jpg", "jpeg", "png", "webp"]
     )
 
-    fichier = None
-
-    if mode == "📷 Prendre une photo":
-        st.markdown(
-            '<div style="background:#F5F5F5;border-radius:14px;'
-            'padding:0.8rem 1rem;margin:0.8rem 0;'
-            'border-left:3px solid #333333;">'
-            '<p style="margin:0;font-size:0.82rem;color:#111111;">'
-            '📌 <strong>Astuce :</strong> Approche-toi de la plante, '
-            'assure-toi d\'avoir une bonne lumière</p></div>',
-            unsafe_allow_html=True
-        )
-        photo = st.camera_input(
-            label="Pointer vers la plante",
-            label_visibility="collapsed"
-        )
-        if photo:
-            fichier = photo
-
-    else:
-        st.markdown(
-            '<div style="background:#F5F5F5;border-radius:14px;'
-            'padding:0.8rem 1rem;margin:0.8rem 0;'
-            'border-left:3px solid #333333;">'
-            '<p style="margin:0;font-size:0.82rem;color:#111111;">'
-            '📌 <strong>Astuce :</strong> Formats acceptés JPG, PNG, WEBP</p></div>',
-            unsafe_allow_html=True
-        )
-        upload = st.file_uploader(
-            label="Glisse ta photo ici",
-            type=["jpg", "jpeg", "png", "webp"],
-            label_visibility="collapsed"
-        )
-        if upload:
-            fichier = upload
+    fichier = upload if upload else None
 
     if fichier:
         image = Image.open(fichier)
@@ -133,28 +97,15 @@ else:
 
             if not resultat["succes"]:
                 st.error("❌ " + resultat["erreur"])
-
             else:
                 diagnostic = resultat["data"]
 
                 if not diagnostic.get("est_une_plante"):
-                    st.markdown(
-                        '<div style="background:#FFF8E1;border-radius:16px;'
-                        'padding:1.2rem;text-align:center;margin-top:0.8rem;">'
-                        '<p style="font-size:1.5rem;margin:0 0 0.5rem 0;">🤔</p>'
-                        '<p style="font-weight:700;color:#F57F17;margin:0 0 0.3rem 0;">'
-                        'Aucune plante détectée</p>'
-                        '<p style="font-size:0.85rem;color:#777777;margin:0;">'
-                        'Essaie avec une photo plus nette ou plus proche</p></div>',
-                        unsafe_allow_html=True
-                    )
-
+                    st.warning("🤔 Aucune plante détectée. Essaie avec une photo plus nette.")
                 else:
                     diag_id = None
                     if st.session_state.get("user_id"):
-                        diag_id = save_diagnostic(
-                            st.session_state["user_id"], diagnostic
-                        )
+                        diag_id = save_diagnostic(st.session_state["user_id"], diagnostic)
                         st.session_state["diagnostic_id"] = diag_id
 
                     afficher_diagnostic(diagnostic)
@@ -171,9 +122,8 @@ else:
                         sous_t = "Choisis parmi nos produits préventifs · 100% naturels · Fabriqués en France"
 
                     st.markdown(
-                        '<p style="font-size:1.1rem;font-weight:800;'
-                        'color:#111111;margin:1.2rem 0 0.2rem 0;">'
-                        + titre_s + '</p>'
+                        '<p style="font-size:1.1rem;font-weight:800;color:#111111;'
+                        'margin:1.2rem 0 0.2rem 0;">' + titre_s + '</p>'
                         '<p style="color:#777777;font-size:0.82rem;'
                         'margin:0 0 0.8rem 0;">' + sous_t + '</p>',
                         unsafe_allow_html=True
