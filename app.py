@@ -19,6 +19,7 @@ for key, val in {
     "user_id": None,
     "diagnostic_id": None,
     "show_auth": False,
+    "mode": "camera",
 }.items():
     if key not in st.session_state:
         st.session_state[key] = val
@@ -76,7 +77,7 @@ else:
         unsafe_allow_html=True
     )
 
-    # Mode sélection
+    # Sélection mode
     st.markdown(
         '<p style="font-size:0.88rem;font-weight:700;color:#111111;'
         'margin:0 0 0.5rem 0;">Comment veux-tu ajouter ta photo ?</p>',
@@ -85,25 +86,11 @@ else:
 
     col_cam, col_up = st.columns(2)
     with col_cam:
-        btn_cam = st.button(
-            "📷 Caméra",
-            use_container_width=True,
-            type="primary" if st.session_state.get("mode", "camera") == "camera" else "secondary"
-        )
+        if st.button("📷 Caméra", use_container_width=True):
+            st.session_state["mode"] = "camera"
     with col_up:
-        btn_up = st.button(
-            "🖼️ Galerie",
-            use_container_width=True,
-            type="primary" if st.session_state.get("mode") == "upload" else "secondary"
-        )
-
-    if btn_cam:
-        st.session_state["mode"] = "camera"
-    if btn_up:
-        st.session_state["mode"] = "upload"
-
-    if "mode" not in st.session_state:
-        st.session_state["mode"] = "camera"
+        if st.button("🖼️ Galerie", use_container_width=True):
+            st.session_state["mode"] = "upload"
 
     mode = st.session_state.get("mode", "camera")
 
@@ -192,4 +179,110 @@ else:
                         titre_s = "⭐ Garde ta plante en bonne santé !"
                         sous_t = "Choisis parmi nos produits préventifs · 100% naturels · Fabriqués en France"
 
-                    st.mark
+                    st.markdown(
+                        '<p style="font-size:1.1rem;font-weight:800;'
+                        'color:#111111;margin:1.2rem 0 0.2rem 0;">'
+                        + titre_s + '</p>'
+                        '<p style="color:#777777;font-size:0.82rem;'
+                        'margin:0 0 0.8rem 0;">' + sous_t + '</p>',
+                        unsafe_allow_html=True
+                    )
+
+                    for produit in produits:
+                        save_product_click(
+                            st.session_state.get("user_id"),
+                            produit["nom"],
+                            produit["url"],
+                            st.session_state.get("diagnostic_id")
+                        )
+                        st.markdown(
+                            '<div style="background:white;border-radius:16px;'
+                            'padding:0.9rem 1rem;margin-bottom:0.8rem;'
+                            'box-shadow:0 2px 10px rgba(0,0,0,0.05);'
+                            'border:1px solid #EEEEEE;'
+                            'display:flex;align-items:center;'
+                            'justify-content:space-between;gap:0.8rem;">'
+                            '<div style="display:flex;align-items:center;gap:0.8rem;flex:1;">'
+                            '<span style="font-size:1.8rem;">'
+                            + produit["emoji"] + '</span>'
+                            '<div>'
+                            '<p style="font-size:0.88rem;font-weight:700;'
+                            'color:#111111;margin:0;">'
+                            + produit["nom"] + '</p>'
+                            '<p style="font-size:0.75rem;color:#777777;margin:0;">'
+                            + produit["description"] + '</p>'
+                            '</div></div>'
+                            '<a href="' + produit["url"] + '" '
+                            'target="_blank" style="'
+                            'display:inline-block;'
+                            'background:linear-gradient(135deg,#FF9B3F,#ffb347);'
+                            'color:white;'
+                            'padding:0.5rem 1rem;'
+                            'border-radius:50px;'
+                            'font-weight:700;'
+                            'font-size:0.82rem;'
+                            'text-decoration:none;'
+                            'white-space:nowrap;'
+                            '">🛍️ Acheter</a>'
+                            '</div>',
+                            unsafe_allow_html=True
+                        )
+
+                    st.markdown(
+                        '<div style="background:linear-gradient('
+                        '135deg,#1A1A1A,#444444);'
+                        'border-radius:20px;padding:1.3rem;'
+                        'text-align:center;margin-top:1rem;">'
+                        '<h3 style="color:white;margin:0 0 0.3rem 0;'
+                        'font-size:1rem;font-weight:800;">'
+                        '🌿 Toute la gamme Jungle Feed</h3>'
+                        '<p style="color:rgba(255,255,255,0.7);'
+                        'margin:0 0 0.8rem 0;font-size:0.82rem;">'
+                        '100% naturel · Fabriqué en France</p>'
+                        '<a href="https://www.junglefeed.fr" target="_blank" '
+                        'style="display:inline-block;background:white;'
+                        'color:#1A1A1A;padding:0.5rem 1.5rem;border-radius:50px;'
+                        'font-weight:800;font-size:0.85rem;text-decoration:none;">'
+                        'Visiter la boutique →</a></div>',
+                        unsafe_allow_html=True
+                    )
+
+    else:
+        st.markdown(
+            '<div style="background:white;border-radius:20px;'
+            'padding:2rem 1.5rem;text-align:center;margin-top:0.5rem;'
+            'box-shadow:0 2px 12px rgba(0,0,0,0.05);">'
+            '<div style="background:#F5F5F5;width:70px;height:70px;'
+            'border-radius:50%;display:flex;align-items:center;'
+            'justify-content:center;margin:0 auto 1rem auto;'
+            'font-size:2rem;">🪴</div>'
+            '<p style="font-weight:800;color:#111111;font-size:1rem;'
+            'margin:0 0 1rem 0;">Comment ça marche ?</p>'
+            '<div style="text-align:left;">'
+            '<div style="display:flex;align-items:center;'
+            'gap:0.8rem;margin-bottom:0.8rem;">'
+            '<div style="background:#EEEEEE;border-radius:50%;'
+            'width:32px;height:32px;display:flex;align-items:center;'
+            'justify-content:center;font-size:0.9rem;flex-shrink:0;">'
+            '1️⃣</div>'
+            '<p style="margin:0;font-size:0.88rem;color:#555555;">'
+            'Prends une photo de ta plante</p></div>'
+            '<div style="display:flex;align-items:center;'
+            'gap:0.8rem;margin-bottom:0.8rem;">'
+            '<div style="background:#EEEEEE;border-radius:50%;'
+            'width:32px;height:32px;display:flex;align-items:center;'
+            'justify-content:center;font-size:0.9rem;flex-shrink:0;">'
+            '2️⃣</div>'
+            '<p style="margin:0;font-size:0.88rem;color:#555555;">'
+            'L\'IA analyse et détecte les problèmes</p></div>'
+            '<div style="display:flex;align-items:center;gap:0.8rem;">'
+            '<div style="background:#EEEEEE;border-radius:50%;'
+            'width:32px;height:32px;display:flex;align-items:center;'
+            'justify-content:center;font-size:0.9rem;flex-shrink:0;">'
+            '3️⃣</div>'
+            '<p style="margin:0;font-size:0.88rem;color:#555555;">'
+            'Nous te proposons les meilleurs produits naturels '
+            'pour ta plante</p>'
+            '</div></div></div>',
+            unsafe_allow_html=True
+        )
