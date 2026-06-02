@@ -48,6 +48,10 @@ def afficher_auth():
                         st.session_state["user_id"] = user["id"]
                         st.session_state["show_auth"] = False
                         st.success("Connexion réussie ! 🌿")
+                        st.markdown(
+                            '<meta http-equiv="refresh" content="2">',
+                            unsafe_allow_html=True
+                        )
                     else:
                         st.error("Email ou mot de passe incorrect")
                 else:
