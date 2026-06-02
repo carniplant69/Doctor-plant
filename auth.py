@@ -39,7 +39,8 @@ def afficher_auth():
                     elif user["password_hash"] == hash_password(password):
                         st.session_state["user"] = user
                         st.session_state["user_id"] = user["id"]
-                        st.rerun()
+                        st.session_state["show_auth"] = False
+                        st.session_state["rerun"] = True
                     else:
                         st.error("Email ou mot de passe incorrect")
                 else:
@@ -50,17 +51,17 @@ def afficher_auth():
         password_r = st.text_input("Mot de passe", type="password", key="reg_password", placeholder="8 caractères minimum")
         password_r2 = st.text_input("Confirme le mot de passe", type="password", key="reg_password2", placeholder="••••••••")
 
-        st.markdown("""
-        <div style="background:#F5F5F5;border-radius:12px;padding:1rem;margin:0.8rem 0;">
-            <p style="font-size:0.78rem;color:#555555;margin:0;line-height:1.6;">
-                🔒 <strong>Tes données sont protégées</strong><br>
-                Conformément au RGPD, tes données sont utilisées uniquement
-                pour sauvegarder tes diagnostics. Tu peux demander la
-                suppression de ton compte à tout moment.
-                Nous ne vendons jamais tes données.
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            '<div style="background:#F5F5F5;border-radius:12px;padding:1rem;margin:0.8rem 0;">'
+            + '<p style="font-size:0.78rem;color:#555555;margin:0;line-height:1.6;">'
+            + '🔒 <strong>Tes données sont protégées</strong><br>'
+            + 'Conformément au RGPD, tes données sont utilisées uniquement '
+            + 'pour sauvegarder tes diagnostics. Tu peux demander la '
+            + 'suppression de ton compte à tout moment. '
+            + 'Nous ne vendons jamais tes données.'
+            + '</p></div>',
+            unsafe_allow_html=True
+        )
 
         rgpd = st.checkbox("J'accepte la politique de confidentialité et le traitement de mes données personnelles")
 
@@ -81,8 +82,8 @@ def afficher_auth():
                     user = result["data"]
                     st.session_state["user"] = user
                     st.session_state["user_id"] = user["id"]
-                    st.success("Compte créé ! Bienvenue 🌿")
-                    st.rerun()
+                    st.session_state["show_auth"] = False
+                    st.session_state["rerun"] = True
                 else:
                     if "duplicate" in result["erreur"].lower():
                         st.error("Cet email est déjà utilisé")
